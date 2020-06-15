@@ -1,9 +1,9 @@
-
+#import "AppDelegate.h"
 #import <Foundation/Foundation.h>
 #import "TwitterConnect.h"
-#import <Fabric/Fabric.h>
-#import <TwitterKit/TwitterKit.h>
-#import "ListTimelineViewController.h"
+// #import <Fabric/Fabric.h>
+#import <TwitterKit/TWTRKit.h>
+// #import "ListTimelineViewController.h"
 
 @implementation TwitterConnect
 
@@ -12,24 +12,48 @@
     NSString* consumerKey = [self.commandDelegate.settings objectForKey:[@"TwitterConsumerKey" lowercaseString]];
     NSString* consumerSecret = [self.commandDelegate.settings objectForKey:[@"TwitterConsumerSecret" lowercaseString]];
     [[Twitter sharedInstance] startWithConsumerKey:consumerKey consumerSecret:consumerSecret];
-    [Fabric with:@[[Twitter sharedInstance]]];
+    // [Fabric with:@[[Twitter sharedInstance]]];
     
-    [Fabric with:@[TwitterKit]];
+    // [Fabric with:@[TwitterKit]];
 }
 
+BOOL authNotResolved = true;
 
 - (void)login:(CDVInvokedUrlCommand*)command
 {
     [[Twitter sharedInstance] logInWithCompletion:^(TWTRSession *session, NSError *error) {
-		CDVPluginResult* pluginResult = nil;
+		__block CDVPluginResult* pluginResult = nil;
 		if (session){
-			NSLog(@"signed in as %@", [session userName]);
-			NSDictionary *userSession = @{
-										  @"userName": [session userName],
-										  @"userId": [session userID],
-										  @"secret": [session authTokenSecret],
-										  @"token" : [session authToken]};
-			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:userSession];
+            TWTRAPIClient *client = [TWTRAPIClient clientWithCurrentUser];
+
+            [client requestEmailForCurrentUser:^(NSString *email, NSError *error) {
+                NSString *requestedEmail = (email) ? email : @"";
+                
+                [client loadUserWithID:[session userID] completion:^(TWTRUser *user,
+                                                                       NSError *error)
+                {
+                    // handle the response or error
+                    if (![error isEqual:nil]) {
+                        NSLog(@"signed in as %@", [session userName]);
+                        NSString *urlString = [[NSString alloc]initWithString:user.profileImageLargeURL];
+                        NSURL *url = [[NSURL alloc]initWithString:urlString];
+                        
+                        NSDictionary *body = @{@"authToken": session.authToken,
+                                               @"authTokenSecret": session.authTokenSecret,
+                                               @"userID": session.userID,
+                                               @"email": requestedEmail,
+                                               @"userName": session.userName,
+                                               @"profileImage": url};
+
+                        if(authNotResolved) {
+                            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:body];
+                            authNotResolved = false;
+                        }
+                    } else {
+                        NSLog(@"Twitter error getting profile : %@", [error localizedDescription]);
+                    }
+                }];
+            }];
 		} else {
 			NSLog(@"error: %@", [error localizedDescription]);
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
@@ -40,170 +64,20 @@
 
 - (void)logout:(CDVInvokedUrlCommand*)command
 {
-    [[Twitter sharedInstance] logOut];
+    TWTRSessionStore *store = [[Twitter sharedInstance] sessionStore];
+    NSString *userID = store.session.userID;
+    [store logOutUserID:userID];
 	CDVPluginResult* pluginResult = pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
 	[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)showUser:(CDVInvokedUrlCommand*)command
-{
-	TWTRAPIClient *apiClient = [[Twitter sharedInstance] APIClient];
+@end
 
-	NSMutableDictionary *requestParameters = [[NSMutableDictionary alloc] init];
-    [requestParameters setObject:[[[Twitter sharedInstance] session] userID] forKey:@"user_id"];
-    
-    NSString *include_entities = @"false";
-    
-    if([[command.arguments objectAtIndex:0] objectForKey:@"include_entities"] != nil) {
-        if([[[command.arguments objectAtIndex:0] objectForKey:@"include_entities"] boolValue] == YES) {
-            include_entities = @"true";
-        }
-    }
-    
-    [requestParameters setObject:include_entities forKey:@"include_entities"];
+#pragma mark - AppDelegate Overrides
 
-	NSError *error = nil;
-
-	NSURLRequest *apiRequest = [apiClient URLRequestWithMethod:@"GET"
-														   URL:@"https://api.twitter.com/1.1/users/show.json"
-													parameters:requestParameters
-														 error:&error];
-	[apiClient sendTwitterRequest:apiRequest
-					   completion:^(NSURLResponse *response, NSData *data, NSError *error) {
-						   NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-						   NSInteger _httpStatus = [httpResponse statusCode];
-
-						   CDVPluginResult *pluginResult = nil;
-						   NSLog(@"API Response :%@",response);
-						   if (error != nil) {
-							   pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
-						   } else if (_httpStatus == 200) {
-							   NSDictionary *resultDict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-							   pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:resultDict];
-						   }
-						   [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-
-					   }];
+@implementation AppDelegate (TwitterConnect)
+- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<NSString *,id> *)options {
+    NSLog(@"Twitter handle url using application:openURL:options:: %@", url);
+  return [[Twitter sharedInstance] application:app openURL:url options:options];
 }
-
-- (void)verifyCredentials:(CDVInvokedUrlCommand*)command
-{
-    TWTRAPIClient *apiClient = [[Twitter sharedInstance] APIClient];
-    
-    NSMutableDictionary *requestParameters = [[NSMutableDictionary alloc] init];
-    
-    NSString *include_entities = @"false";
-    NSString *skip_status = @"true";
-    NSString *include_email = @"true";
-    
-    if([[command.arguments objectAtIndex:0] objectForKey:@"include_entities"] != nil) {
-        if([[[command.arguments objectAtIndex:0] objectForKey:@"include_entities"] boolValue] == YES) {
-            include_entities = @"true";
-        }
-    }
-    if([[command.arguments objectAtIndex:0] objectForKey:@"skip_status"] != nil) {
-        if([[[command.arguments objectAtIndex:0] objectForKey:@"skip_status"] boolValue] == NO) {
-            skip_status = @"false";
-        }
-    }
-    if([[command.arguments objectAtIndex:0] objectForKey:@"include_email"] != nil) {
-        if([[[command.arguments objectAtIndex:0] objectForKey:@"include_email"] boolValue] == NO) {
-            include_email = @"false";
-        }
-    }
-    
-    [requestParameters setObject:include_entities forKey:@"include_entities"];
-    [requestParameters setObject:skip_status forKey:@"skip_status"];
-    [requestParameters setObject:include_email forKey:@"include_email"];
-    
-    NSError *error = nil;
-    
-    NSURLRequest *apiRequest = [apiClient URLRequestWithMethod:@"GET"
-                                                           URL:@"https://api.twitter.com/1.1/account/verify_credentials.json"
-                                                    parameters:requestParameters
-                                                         error:&error];
-    [apiClient sendTwitterRequest:apiRequest
-                       completion:^(NSURLResponse *response, NSData *data, NSError *error) {
-                           NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
-                           NSInteger _httpStatus = [httpResponse statusCode];
-                           
-                           CDVPluginResult *pluginResult = nil;
-                           NSLog(@"API Response :%@",response);
-                           if (error != nil) {
-                               pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
-                           } else if (_httpStatus == 200) {
-                               NSDictionary *resultDict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-                               pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:resultDict];
-                           }
-                           [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-                           
-                       }];
-}
-
-- (void)openComposer:(CDVInvokedUrlCommand*)command
-{
-	CDVPluginResult* pluginResult = nil;
-    NSString* unescapedText = [command.arguments objectAtIndex:0];
-
-    //check if it has default text parameter
-    if (unescapedText == nil) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Should receive a default text as input parameter!"];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }
-
-	UIApplication *application = [UIApplication sharedApplication];
-	NSString *escapedText = [unescapedText stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet URLQueryAllowedCharacterSet]];
-	NSString *schemeUrl = @"twitter://post?message=";
-	NSString *schemeString = [schemeUrl stringByAppendingString:escapedText];
-	NSURL *URL = [NSURL URLWithString:schemeString];
-
-	if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
-		//call twitter app if it can
-    	[application openURL:URL options:@{} completionHandler:^(BOOL success) {
-      		if(!success) {
-      			//open native composer
-      			//this happens when the twitter app was previously installed on the device
-  				TWTRComposer *composer = [[TWTRComposer alloc] init];
-
-				NSString *text = unescapedText;
-				[composer setText:text];
-
-				// Called from a UIViewController
-				UIViewController *vc = self.viewController;
-				[composer showFromViewController:vc completion:nil];
-      		} else {
-      			NSLog(@"Open %d",success);
-      		}
-    	}];
-  	} else {
-  		//else open native composer
-  		TWTRComposer *composer = [[TWTRComposer alloc] init];
-
-		NSString *text = unescapedText;
-		[composer setText:text];
-
-		// Called from a UIViewController
-		UIViewController *vc = self.viewController;
-		[composer showFromViewController:vc completion:nil];
-  	}
-}
-
-- (void)showTimeline:(CDVInvokedUrlCommand*)command
-{
-	CDVPluginResult* pluginResult = nil;
-    NSString* query = [command.arguments objectAtIndex:0];
-
-    //check if it has query parameter
-    if (query == nil) {
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Should receive a query as input parameter!"];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    }
-
-	ListTimelineViewController *lvc = [[ListTimelineViewController alloc] init];
-	lvc.query = query;
-	UIViewController *vc = self.viewController;
-    [vc presentViewController:lvc animated:NO completion:nil];
-
-}
-
 @end

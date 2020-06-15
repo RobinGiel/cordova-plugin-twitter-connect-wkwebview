@@ -1,6 +1,6 @@
-# twitter-connect-plugin
+# cordova-plugin-twitter-connect-wkwebview
 Cordova/PhoneGap plugin to use Twitter Single Sign On
-### **NOTE: This plugin has been extended from https://github.com/ManifestWebDesign/twitter-connect-plugin. Not only performs authentication on your mobile device but it also allows you to call the tweet composer and has also the ability to show a twitter search timeline. This last feature is not yet complete.**
+### **NOTE: This plugin has been extended from https://github.com/ManifestWebDesign/twitter-connect-plugin to make it can work with wkwebview.**
 
 Using Twitter's Fabric SDK, you can enable SSO with your Android and iOS apps. It's a fairly involved process, so I'll try to lay out every step necessary.
 
@@ -21,11 +21,11 @@ Create a Twitter application and get the consumer key and consumer secret.
 
 Make sure you put in your valid API keys in their respective place.
 
-`cordova plugin add https://github.com/chroa/twitter-connect-plugin --variable FABRIC_KEY=<Fabric API Key> --variable TWITTER_KEY=<Twitter Consumer Key> --variable TWITTER_SECRET=<Twitter Consumer Secret>`
+`cordova plugin add cordova-plugin-twitter-connect-wkwebview --variable FABRIC_KEY=<Fabric API Key> --variable TWITTER_KEY=<Twitter Consumer Key> --variable TWITTER_SECRET=<Twitter Consumer Secret>`
 
-For iOS, the deployment target needs to be at least 7.0. You can set this in the config.xml file like so:
+For iOS, the deployment target needs to be at least 9.0. You can set this in the config.xml file like so:
 ````
-<preference name="deployment-target" value="7.0" />
+<preference name="deployment-target" value="9.0" />
 ````
 
 ##### Dependencies
@@ -39,7 +39,7 @@ You should now be able to: `cordova run android` or `cordova run ios`
 Add the following to your config:
 
 ```
-<gap:plugin name="twitter-connect-plugin" source="npm" spec="0.5.0">
+<gap:plugin name="cordova-plugin-twitter-connect-wkwebview" source="npm" spec="1.0.0">
   <param name="FABRIC_KEY" value="<Fabric API Key>" />
   <param name="TWITTER_KEY" value="<Twitter Consumer Key>" />
   <param name="TWITTER_SECRET" value="<Twitter Consumer Secret>" />

@@ -1,9 +1,9 @@
 {
-  "name": "twitter-connect-plugin",
-  "version": "0.6.0",
+  "name": "cordova-plugin-twitter-connect-wkwebview",
+  "version": "1.0.0",
   "description": "Twitter Connect Plugin - Allows single-sign on logins using Twitter",
   "cordova": {
-    "id": "twitter-connect-plugin",
+    "id": "cordova-plugin-twitter-connect-wkwebview",
     "platforms": [
       "android",
       "ios"
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ManifestWebDesign/twitter-connect-plugin.git"
+    "url": "git+https://github.com/tien271/cordova-plugin-twitter-connect-wkwebview.git"
   },
   "keywords": [
     "cordova",
@@ -22,16 +22,14 @@
     "cordova-android",
     "cordova-ios"
   ],
-  "engines": [
-    {
-      "name": "cordova-android",
-      "version": ">3.9.9"
-    }
-  ],
-  "author": "Nathan Kerr",
-  "license": "Apache 2.0",
+  "author": "Tien Nguyen",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/ManifestWebDesign/twitter-connect-plugin/issues"
+    "url": "https://github.com/tien271/cordova-plugin-twitter-connect-wkwebview/issues"
   },
-  "homepage": "https://github.com/ManifestWebDesign/twitter-connect-plugin#readme"
+  "homepage": "https://github.com/tien271/cordova-plugin-twitter-connect-wkwebview#readme",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
 }
