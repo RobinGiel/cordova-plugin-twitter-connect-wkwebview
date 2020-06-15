@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-twitter-connect-wkwebview",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Twitter Connect Plugin - Allows single-sign on logins using Twitter",
   "cordova": {
     "id": "cordova-plugin-twitter-connect-wkwebview",

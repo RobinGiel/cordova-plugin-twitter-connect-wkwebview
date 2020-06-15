@@ -1,9 +1,7 @@
 #import "AppDelegate.h"
 #import <Foundation/Foundation.h>
 #import "TwitterConnect.h"
-// #import <Fabric/Fabric.h>
 #import <TwitterKit/TWTRKit.h>
-// #import "ListTimelineViewController.h"
 
 @implementation TwitterConnect
 
@@ -12,9 +10,6 @@
     NSString* consumerKey = [self.commandDelegate.settings objectForKey:[@"TwitterConsumerKey" lowercaseString]];
     NSString* consumerSecret = [self.commandDelegate.settings objectForKey:[@"TwitterConsumerSecret" lowercaseString]];
     [[Twitter sharedInstance] startWithConsumerKey:consumerKey consumerSecret:consumerSecret];
-    // [Fabric with:@[[Twitter sharedInstance]]];
-    
-    // [Fabric with:@[TwitterKit]];
 }
 
 BOOL authNotResolved = true;
@@ -23,7 +18,7 @@ BOOL authNotResolved = true;
 {
     [[Twitter sharedInstance] logInWithCompletion:^(TWTRSession *session, NSError *error) {
 		__block CDVPluginResult* pluginResult = nil;
-		if (session){
+		if (session) {
             TWTRAPIClient *client = [TWTRAPIClient clientWithCurrentUser];
 
             [client requestEmailForCurrentUser:^(NSString *email, NSError *error) {
@@ -35,30 +30,35 @@ BOOL authNotResolved = true;
                     // handle the response or error
                     if (![error isEqual:nil]) {
                         NSLog(@"signed in as %@", [session userName]);
+                        NSString *nameString = [[NSString alloc]initWithString:user.name];
                         NSString *urlString = [[NSString alloc]initWithString:user.profileImageLargeURL];
-                        NSURL *url = [[NSURL alloc]initWithString:urlString];
                         
                         NSDictionary *body = @{@"authToken": session.authToken,
                                                @"authTokenSecret": session.authTokenSecret,
-                                               @"userID": session.userID,
+                                               @"id": session.userID,
                                                @"email": requestedEmail,
                                                @"userName": session.userName,
-                                               @"profileImage": url};
+                                               @"profile_image_url": urlString,
+                                               @"name": nameString
+                        };
 
                         if(authNotResolved) {
                             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:body];
                             authNotResolved = false;
+                            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
                         }
                     } else {
                         NSLog(@"Twitter error getting profile : %@", [error localizedDescription]);
+                        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
+                        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
                     }
                 }];
             }];
 		} else {
 			NSLog(@"error: %@", [error localizedDescription]);
 			pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:[error localizedDescription]];
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 		}
-		[self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 	}];
 }
 

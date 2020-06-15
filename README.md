@@ -39,7 +39,7 @@ You should now be able to: `cordova run android` or `cordova run ios`
 Add the following to your config:
 
 ```
-<gap:plugin name="cordova-plugin-twitter-connect-wkwebview" source="npm" spec="1.0.0">
+<gap:plugin name="cordova-plugin-twitter-connect-wkwebview" source="npm" spec="1.0.1">
   <param name="FABRIC_KEY" value="<Fabric API Key>" />
   <param name="TWITTER_KEY" value="<Twitter Consumer Key>" />
   <param name="TWITTER_SECRET" value="<Twitter Consumer Secret>" />
