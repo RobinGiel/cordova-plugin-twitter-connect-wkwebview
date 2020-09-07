@@ -1,10 +1,11 @@
 package com.manifestwebdesign.twitterconnect;
 
 import com.twitter.sdk.android.core.*;
+import com.twitter.sdk.android.core.models.User;
 
-import retrofit.http.GET;
-import retrofit.http.Query;
-import retrofit.client.Response;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public class VerifyCredentialsServiceApi extends TwitterApiClient {
     public VerifyCredentialsServiceApi(TwitterSession session) {
@@ -18,8 +19,7 @@ public class VerifyCredentialsServiceApi extends TwitterApiClient {
 
 interface VerifyCredentialsService {
     @GET("/1.1/account/verify_credentials.json")
-    void verify(@Query("include_entities") boolean includeEntities,
+    Call<User> verify(@Query("include_entities") boolean includeEntities,
                     @Query("skip_status") boolean skipStatus,
-                    @Query("include_email") boolean includeEmail,
-                    Callback<Response> cb);
+                    @Query("include_email") boolean includeEmail);
 }

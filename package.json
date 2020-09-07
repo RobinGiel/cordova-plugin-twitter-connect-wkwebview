@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tien271/cordova-plugin-twitter-connect-wkwebview.git"
+    "url": "git+https://github.com/RobinGiel/cordova-plugin-twitter-connect-wkwebview.git"
   },
   "keywords": [
     "cordova",
@@ -25,9 +25,9 @@
   "author": "Tien Nguyen",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/tien271/cordova-plugin-twitter-connect-wkwebview/issues"
+    "url": "https://github.com/RobinGiel/cordova-plugin-twitter-connect-wkwebview/issues"
   },
-  "homepage": "https://github.com/tien271/cordova-plugin-twitter-connect-wkwebview#readme",
+  "homepage": "https://github.com/RobinGiel/cordova-plugin-twitter-connect-wkwebview#readme",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

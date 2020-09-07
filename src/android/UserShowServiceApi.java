@@ -1,24 +1,24 @@
 package com.manifestwebdesign.twitterconnect;
 
 import com.twitter.sdk.android.core.*;
+import com.twitter.sdk.android.core.models.User;
 
-import retrofit.http.GET;
-import retrofit.http.Query;
-import retrofit.client.Response;
+import retrofit2.Call;
+import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public class UserShowServiceApi extends TwitterApiClient {
-	public UserShowServiceApi(TwitterSession session) {
-		super(session);
-	}
+    public UserShowServiceApi(TwitterSession session) {
+        super(session);
+    }
 
-	public UserShowService getCustomService() {
-		return getService(UserShowService.class);
-	}
+    public UserShowService getCustomService() {
+        return getService(UserShowService.class);
+    }
 }
 
 interface UserShowService {
-	@GET("/1.1/users/show.json")
-	void show(@Query("screen_name") String screen_name,
-			@Query("include_entities") boolean includeEntities,
-			Callback<Response> cb);
+    @GET("/1.1/users/show.json")
+    Call<User> show(@Query("user_id") long userId,
+                    @Query("include_entities") boolean includeEntities);
 }
