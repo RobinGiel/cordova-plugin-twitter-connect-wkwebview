@@ -33,8 +33,8 @@ BOOL authNotResolved = true;
                         NSString *nameString = [[NSString alloc]initWithString:user.name];
                         NSString *urlString = [[NSString alloc]initWithString:user.profileImageLargeURL];
                         
-                        NSDictionary *body = @{@"authToken": session.authToken,
-                                               @"authTokenSecret": session.authTokenSecret,
+                        NSDictionary *body = @{@"token": session.authToken,
+                                               @"secret": session.authTokenSecret,
                                                @"id": session.userID,
                                                @"email": requestedEmail,
                                                @"userName": session.userName,
